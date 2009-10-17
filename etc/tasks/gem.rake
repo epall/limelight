@@ -1,6 +1,6 @@
 require 'rake/gempackagetask'
 
-PKG_NAME = "limelight"
+PKG_NAME = "epall-limelight"
 PKG_VERSION   = Limelight::VERSION::STRING
 PKG_TAG = Limelight::VERSION::TAG
 PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
@@ -25,8 +25,8 @@ spec = Gem::Specification.new do |s|
   s.executables = ['limelight']
   s.autorequire = 'init'
   s.platform = "java"
-  s.author = "Micah Martin, 8th Light"
-  s.email = "limelight@rubyforge.org"
+  s.author = "Eric Allen"
+  s.email = "ericpallen@gmail.com"
   s.homepage = "http://limelight.8thlight.com"
   s.rubyforge_project = "limelight"
 end
