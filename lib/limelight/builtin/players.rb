@@ -10,6 +10,7 @@ require 'limelight/builtin/players/text_box'
 require 'limelight/builtin/players/combo_box_popup_list_item'
 require 'limelight/builtin/players/combo_box_popup_list'
 require 'limelight/builtin/players/curtains'
+require 'limelight/builtin/players/html'
 require 'limelight/builtin/players/image'
 require "limelight/builtin/players/password_box"
 require "limelight/builtin/players/stage_mover"

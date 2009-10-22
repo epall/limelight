@@ -32,6 +32,7 @@ module Limelight #:nodoc:
       Frame = Java::limelight.ui.model.StageFrame
       Panel = Java::limelight.ui.model.PropPanel
       ImagePanel = Java::limelight.ui.model.ImagePanel
+      HTMLPanel = Java::limelight.ui.model.HTMLPanel
 
       module Inputs #:nodoc:
        ButtonPanel = Java::limelight.ui.model.inputs.ButtonPanel
