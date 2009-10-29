@@ -3,11 +3,15 @@
 
 require 'monitor'
 
-module Production
+module Production #:nodoc:
 
   def production_opening
     @monitor = Monitor.new
     @alert_monitor = @monitor.new_cond
+  end
+
+  def allow_close?
+    return false
   end
 
   def default_scene
@@ -40,7 +44,7 @@ module Production
 
   def alert(message)
     @alert_monitor = @monitor.new_cond
-    load_alert_scene(message)
+    load_alert_scene(message.to_s)
     @monitor.synchronize{ @alert_monitor.wait }
     @alert_stage.close
     return @alert_response

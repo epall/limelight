@@ -186,6 +186,7 @@ module Limelight
     # See load_scene
     #
     def open(scene)
+      @current_scene.visible = false if @current_scene
       scene.stage = self
       scene.illuminate
       load_scene(scene)
@@ -197,16 +198,13 @@ module Limelight
     # Closes the Stage. It's window will no longer be displayed on the screen.
     #
     def close
-      @theater.stage_closed(self)
       @frame.close
-      @current_scene.visible = false if @current_scene
-      @current_scene = nil
     end
 
     # Loads a scene on the Stage.  If the Stage is currently hosting a Scene, the original Scene will be removed and
     # the new Scene will replace it.
     #
-    def load_scene(scene)
+    def load_scene(scene)      
       #      @frame.setJMenuBar(scene.menu_bar)
       @frame.load(scene.panel)
       if (has_static_size?(scene.style))
@@ -233,7 +231,7 @@ module Limelight
     def alert(message)
       Thread.new do
         begin
-          Studio.utilities_production.alert(message)
+          Context.instance.studio.utilities_production.alert(message)
         rescue StandardError => e
           puts "Error on alert: #{e}"
         end
@@ -252,6 +250,68 @@ module Limelight
 
     def stub_current_scene(scene) #:nodoc:
       @current_scene = scene
+    end
+
+    # returns true if the stage has been closed.  Closed stages may not be reopened.
+    #
+    def closed?
+      return @frame.closed?
+    end
+
+    # Invoked when the stage is being closed.
+    # System hook that should NOT be called by you.
+    #
+    def closing(e)
+    end
+
+    # Invoked when the stage has been closed.
+    # System hook that should NOT be called by you.
+    #
+    def closed(e)
+      @current_scene.visible = false if @current_scene
+      @current_scene = nil
+      @theater.stage_closed(self)
+    end
+
+    # Invoked when the stage has gained focus on the desktop.  Only 1 stage my have focus at a time.
+    # System hook that should NOT be called by you.
+    #
+    def focus_gained(e)
+      @theater.stage_activated(self)
+    end
+
+    # Invoked when the stage has lost focus on the desktop.  Only 1 stage my have focus at a time.
+    # System hook that should NOT be called by you.
+    #
+    def focus_lost(e)
+    end
+
+    # Invoked when the stage has been iconified.  This occurs when the stage is no longer visible on the desktop
+    # and an icon for the stage has been added to the OS's taskbar or dock.
+    # System hook that should NOT be called by you.
+    #
+    def iconified(e)
+    end
+
+    # Invoked when the stage has been deiconified.  This occurs when the icon for the stage has been removed from the
+    # taskbar or dock, and the stage is again visible on the desktop.  
+    # System hook that should NOT be called by you.
+    #
+    def deiconified(e)
+    end
+
+    # Invoked when the stage has become the active stage on the desktop.  Only 1 stage my be active at a time.
+    # System hook that should NOT be called by you.
+    #
+    def activated(e)
+      @theater.stage_activated(self)
+    end
+
+    # Invoked when the stage has lost status as the active stage.  Only 1 stage my have focus at a time.
+    # System hook that should NOT be called by you.
+    #
+    def deactivated(e)
+      @theater.stage_deactivated(self)  
     end
 
     protected #############################################

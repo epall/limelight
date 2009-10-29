@@ -3,8 +3,9 @@
 
 require 'limelight/limelight_exception'
 require 'limelight/file_loader'
-require 'limelight/studio'
+require 'limelight/dsl/styles_builder'
 require 'drb'
+
 
 module Limelight
 
@@ -14,6 +15,8 @@ module Limelight
   # Productions are configured, and attributes are added, by the ProductionBuilder.
   #
   class Production
+
+    include UI::Api::Production
 
     class << self
 
@@ -25,6 +28,8 @@ module Limelight
 
     attr_reader :name, :root
     attr_accessor :producer, :theater
+    attr_accessor :closed #:nodoc:
+
 
     # Users typically need not create Production objects.
     #
@@ -36,7 +41,7 @@ module Limelight
     # Sets the name of the Production.  The name must be unique amongst all Productions in memory.
     #
     def name=(value)
-      Studio.error_if_duplicate_name(value)
+      Context.instance.studio.error_if_duplicate_name(value)
       @name = value
     end
 
@@ -75,7 +80,7 @@ module Limelight
     def gems_directory
       return @root.path_to("__resources/gems/gems")
     end
-    
+
     # Returns the path to the productions gems root
     #
     def gems_root
@@ -86,7 +91,7 @@ module Limelight
     #
     def scene_directory(name)
       return @root.root if name == :root
-        return @root.path_to(name)
+      return @root.path_to(name)
     end
 
     # Returns the minimum version of limelight required to run this production.  Default: "0.0.0"
@@ -135,12 +140,24 @@ module Limelight
     def production_closed
     end
 
+    # returns true if the production has been closed.
+    #
+    def closed?
+      return @closed
+    end
+
     # Closes the production. If there are no more productions open, the Limelight runtime will shutdown.
+    # The production will actually delegate to it's producer and the producer will close the production down.
     #
     def close
-      self.production_closing
-      Studio.production_closed(self)
-      self.production_closed
+      @producer.close(self)
+    end
+
+    # Called when the last stage in this production's theater is closed.  If the allow_close? returns true
+    # this production will be closed.
+    #
+    def theater_empty!
+      close if allow_close? && !closed?
     end
 
     # Returned the name of the default scene.  This is only used when there are not stages defined in the production.
@@ -162,6 +179,16 @@ module Limelight
         end
       end
       return @root_styles
+    end
+
+    alias :getName :name #:nodoc:
+    alias :setName :name= #:nodoc:
+    alias :allowClose :allow_close? #:nodoc: 
+
+    def callMethod(name, java_obj_array) #:nodoc:
+      args = []
+      java_obj_array.length.times { |i| args << java_obj_array[i] }
+      send(name.to_sym, *args)
     end
 
   end

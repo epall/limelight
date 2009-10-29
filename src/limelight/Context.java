@@ -5,7 +5,7 @@ package limelight;
 
 import limelight.io.TempDirectory;
 import limelight.ui.Panel;
-import limelight.ui.api.Studio;
+import limelight.Studio;
 import limelight.ui.model.FrameManager;
 import limelight.ui.model.StageFrame;
 import limelight.caching.Cache;
@@ -37,6 +37,7 @@ public class Context
   public Studio studio;
   public StyleAttributeCompilerFactory styleAttributeCompilerFactory;
   public OS os;
+  public RuntimeFactory runtimeFactory;
   public boolean isShutdown;
   private boolean isShuttingDown;
   
@@ -62,7 +63,7 @@ public class Context
   public static StageFrame getActiveFrame()
   {
     if(instance().frameManager != null)
-      return instance().frameManager.getActiveFrame();
+      return instance().frameManager.getFocusedFrame();
     else
       return null;
   }
@@ -106,7 +107,7 @@ public class Context
 
   public void attemptShutdown()
   {
-    if(studio == null || studio.should_allow_shutdown())
+    if(studio == null || studio.shouldAllowShutdown())
       shutdown();
   }
 

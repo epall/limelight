@@ -1,11 +1,12 @@
 #- Copyright © 2008-2009 8th Light, Inc. All Rights Reserved.
 #- Limelight and all included source files are distributed under terms of the GNU LGPL.
     
-module Limelight #:nodoc:
+module Limelight
 
   Main = Java::limelight.Main
   ResourceLoader = Java::limelight.ResourceLoader
   Context = Java::limelight.Context
+  Studio = Java::limelight.Studio
 
   module Background
     Animation = Java::limelight.background.Animation
@@ -50,7 +51,7 @@ module Limelight #:nodoc:
       Prop = Java::limelight.ui.api.Prop
       Stage = Java::limelight.ui.api.Stage
       Theater = Java::limelight.ui.api.Theater
-      Studio = Java::limelight.ui.api.Studio
+      Production = Java::limelight.ui.api.Production
     end
 
     module Painting #:nodoc:

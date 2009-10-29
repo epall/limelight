@@ -8,9 +8,10 @@ describe Limelight::Producer do
 
   before(:each) do
     TestDir.clean
-    Limelight::Studio.reset
+    Limelight::Studio.uninstall
     @root_dir = TestDir.path("test_prod")
     @producer = Limelight::Producer.new(@root_dir)
+    Limelight::Studio.install
   end
 
   it "should have loader on creation" do
@@ -18,7 +19,7 @@ describe Limelight::Producer do
   end
 
   it "should take an optional theater on creation" do
-    theater = make_mock("theater")
+    theater = mock("theater")
     producer = Limelight::Producer.new("/tmp", theater)
 
     producer.theater.should == theater
@@ -32,7 +33,7 @@ describe Limelight::Producer do
   it "should load props" do
     TestDir.create_file("test_prod/props.rb", "child :id => 321")
 
-    scene = @producer.load_props(:path => TestDir.path("test_prod"), :casting_director => make_mock("casting_director", :fill_cast => nil))
+    scene = @producer.load_props(:path => TestDir.path("test_prod"), :casting_director => mock("casting_director", :fill_cast => nil))
     scene.illuminate
     scene.children.size.should == 1
     scene.children[0].name.should == "child"
@@ -40,7 +41,7 @@ describe Limelight::Producer do
   end
 
   it "should load props even when props.rd doesn't exist." do
-    scene = @producer.load_props(:path => TestDir.path("test_prod"), :casting_director => make_mock("casting_director", :fill_cast => nil))
+    scene = @producer.load_props(:path => TestDir.path("test_prod"), :casting_director => mock("casting_director", :fill_cast => nil))
     scene.children.size.should == 0
   end
 
@@ -52,7 +53,7 @@ describe Limelight::Producer do
 
   it "should load styles" do
     TestDir.create_file("test_prod/styles.rb", "alpha { width 100 }")
-    Limelight::Studio.stub!(:builtin_styles).and_return({})
+    Limelight::Producer.stub!(:builtin_styles).and_return({})
 
     styles = @producer.load_styles(Limelight::Scene.new(:path => TestDir.path("test_prod")))
     styles.size.should == 1
@@ -65,7 +66,7 @@ describe Limelight::Producer do
   #    TestDir.create_file("test_prod/props.rb", "one\n+\nthree")
   #
   #    begin
-  #      result = @producer.load_props(:path => TestDir.path("test_prod"), :casting_director => make_mock("casting_director", :fill_cast => nil))
+  #      result = @producer.load_props(:path => TestDir.path("test_prod"), :casting_director => mock("casting_director", :fill_cast => nil))
   #      result.should == nil # should never perform
   #    rescue Limelight::DSL::BuildException => e
   #      e.line_number.should == 3
@@ -131,8 +132,8 @@ describe Limelight::Producer do
   end
 
   it "should open a scene" do
-    stage = make_mock("stage")
-    scene = make_mock("scene")
+    stage = mock("stage")
+    scene = mock("scene")
     @producer.should_receive(:load_props).with(:production => @producer.production, :casting_director => anything, :path => TestDir.path("test_prod/name"), :name => "name").and_return(scene)
     @producer.should_receive(:load_styles).and_return("styles")
     scene.should_receive(:styles=)
@@ -142,7 +143,7 @@ describe Limelight::Producer do
   end
 
   it "should load empty styles if styles.rb doesn't exist" do
-    Limelight::Studio.stub!(:builtin_styles).and_return({})
+    Limelight::Producer.stub!(:builtin_styles).and_return({})
 
     @producer.load_styles(Limelight::Scene.new(:path => TestDir.path("test_prod"))).should == {}
   end
@@ -197,14 +198,32 @@ describe Limelight::Producer do
   end
 
   it "should allow options such as instance variables to be passed to open_scene" do
-    stage = make_mock("stage")
-    scene = make_mock("scene")
+    stage = mock("stage")
+    scene = mock("scene")
     @producer.should_receive(:load_props).with(:instance_variables => { :foo => "bar" }, :production => @producer.production, :casting_director => anything, :path => TestDir.path("test_prod/name"), :name => "name").and_return(scene)
     @producer.should_receive(:load_styles).and_return("styles")
     scene.should_receive(:styles=)
     stage.should_receive(:open).with(scene)
 
     @producer.open_scene("name", stage, :instance_variables => { :foo => "bar" })
+  end
+  
+  it "should give the same buildin_styles hash twice" do
+    Limelight::Producer.builtin_styles.should be(Limelight::Producer.builtin_styles)
+    Limelight::Producer.builtin_styles["limelight_builtin_players_curtains"].should_not == nil
+  end
+
+  it "should close a production" do
+    theater = mock("theater")
+    production = mock("production", :theater => theater, :closed? => false)
+    production.should_receive(:closed=).with(true)
+    production.should_receive(:production_closing)
+    theater.should_receive(:close)
+    production.should_receive(:production_closed)
+    Limelight::Context.instance.studio.should_receive(:production_closed).with(production)
+
+    close_thread = @producer.close(production)
+    close_thread.join()
   end
   
 end

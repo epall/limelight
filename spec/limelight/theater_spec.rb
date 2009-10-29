@@ -8,7 +8,8 @@ require 'limelight/stage'
 describe Limelight::Theater do
 
   before(:each) do
-    @theater = Limelight::Theater.new
+    @production = mock("production", :theater_empty! => nil)
+    @theater = Limelight::Theater.new(@production)
     @stage = @theater.add_stage("default")
   end
   
@@ -67,6 +68,53 @@ describe Limelight::Theater do
 
     @theater["default"].should == nil
     @theater.active_stage.should == nil
+  end
+
+  it "should notify the production when all the stages are closed" do
+    @production.should_receive(:theater_empty!)
+    
+    @theater.stage_closed(@stage)
+  end
+
+  it "should close" do
+    stage2 = @theater.add_stage("two")
+    stage3 = @theater.add_stage("three")
+    @theater.stage_activated(stage3)
+    stage2.should_receive(:close)
+    stage3.should_receive(:close)
+
+    @theater.close
+
+    @theater.stages.length.should == 0
+    @theater.active_stage.should == nil
+  end
+
+  it "should deactivate stages" do
+    stage2 = @theater.add_stage("two")
+    @theater.stage_activated(@stage)
+    @theater.stage_deactivated(@stage)
+    @theater.active_stage.should == nil
+
+    @theater.stage_activated(stage2)
+    @theater.stage_deactivated(@stage) # this is not the active stage
+    @theater.active_stage.should == nil  # clear active stage since this implies that stage2 was not really active.   
+  end
+
+  it "should notify the production that all the stages are hidden when a stage is closed" do    
+    stage2 = @theater.add_stage("two")
+    stage2.hide
+
+    @production.should_receive(:theater_empty!)
+    @theater.stage_closed(@stage)
+  end
+  
+  it "should notify the production that all the stages are hidden when a stage is deactivated" do
+    stage2 = @theater.add_stage("two")
+    stage2.hide
+    @stage.hide
+
+    @production.should_receive(:theater_empty!)
+    @theater.stage_deactivated(@stage)
   end
 
 end

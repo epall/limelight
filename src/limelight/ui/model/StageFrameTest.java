@@ -8,6 +8,7 @@ import limelight.ui.api.MockStage;
 import limelight.ui.*;
 import limelight.Context;
 import limelight.KeyboardFocusManager;
+import limelight.MockContext;
 import limelight.styles.styling.*;
 import limelight.styles.compiling.RealStyleAttributeCompilerFactory;
 import limelight.os.MockOS;
@@ -15,6 +16,7 @@ import limelight.util.Colors;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowEvent;
 
 public class StageFrameTest extends TestCase
 {
@@ -48,7 +50,7 @@ public class StageFrameTest extends TestCase
   {
     try
     {
-      frame.close();
+      frame.close(null);
     }
     catch(Exception e)
     {
@@ -158,7 +160,7 @@ public class StageFrameTest extends TestCase
   {
     frame.setKiosk(true);
     frame.open();
-    frame.close();
+    frame.close(null);
 
     assertEquals(null, graphicsDevice.getFullScreenWindow());
     assertEquals(false, os.isInKioskMode());
@@ -373,5 +375,62 @@ public class StageFrameTest extends TestCase
     int width = 300 + insets.left + insets.right;
     int height = 200 + insets.top + insets.bottom;
     assertEquals(new Dimension(width, height), frame.getSize());
+  }
+
+  public void testClosedIsCalledwhenClosed() throws Exception
+  {
+    MockContext.stub();
+    AlertFrameManager manager = new AlertFrameManager();
+    manager.watch(frame);
+    frame.close(null);
+    Thread.sleep(10);
+
+    assertEquals(true, stage.wasClosed);
+  }
+  
+  public void testIconificationDelegatedToStage() throws Exception
+  {
+    frame.iconified(new WindowEvent(frame, 1));
+    assertEquals(true, stage.iconified);
+    frame.deiconified(new WindowEvent(frame, 1));
+    assertEquals(false, stage.iconified);
+  }
+
+  public void testActivationDelegatedToStage() throws Exception
+  {
+    frame.activated(new WindowEvent(frame, 1));
+    assertEquals(true, stage.activated);
+    frame.deactivated(new WindowEvent(frame, 1));
+    assertEquals(false, stage.activated);
+  }
+  
+  public void testStageShouldBeNotifiedWhenClosing() throws Exception
+  {
+    frame.close(null);
+
+    assertEquals(true, stage.notifiedOfClosing);
+  }
+
+  public void testClosingAndClosedNotCalledMoreThanOnce() throws Exception
+  {
+    frame.close(null);
+    frame.closed(null);
+    stage.notifiedOfClosing = false;
+    stage.wasClosed = false;
+
+    frame.close(null);
+    frame.closed(null);
+
+    assertEquals(false, stage.notifiedOfClosing);
+    assertEquals(false, stage.wasClosed);
+  }
+
+  public void testIsClosed() throws Exception
+  {
+    assertEquals(false, frame.isClosed());
+
+    frame.closed(null);
+
+    assertEquals(true, frame.isClosed());
   }
 }
