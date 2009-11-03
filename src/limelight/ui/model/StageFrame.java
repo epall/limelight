@@ -13,7 +13,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class StageFrame extends JFrame implements KeyListener
+public class StageFrame extends JFrame implements PropFrame, PropFrameWindow, KeyListener
 {
   private static final StyleAttributeCompiler widthCompiler = Context.instance().styleAttributeCompilerFactory.compiler("dimension", "stage width");
   private static final StyleAttributeCompiler heightCompiler = Context.instance().styleAttributeCompilerFactory.compiler("dimension", "stage height");
@@ -40,6 +40,7 @@ public class StageFrame extends JFrame implements KeyListener
   private boolean opened;
   private boolean closing;
   private boolean closed;
+  private boolean previouslyActivated;
 
   protected StageFrame()
   {
@@ -79,6 +80,17 @@ public class StageFrame extends JFrame implements KeyListener
     setVisible(false);
     exitKioskOrFullscreenIfNeeded();
     dispose();
+  }
+
+  public Frame getWindow()
+  {
+    return this;
+  }
+
+
+  public PropFrame getPropFrame()
+  {
+    return this;
   }
 
   public void closed(WindowEvent e)
@@ -335,12 +347,22 @@ public class StageFrame extends JFrame implements KeyListener
 
   public void activated(WindowEvent e)
   {
-    stage.activated(e);
+    if(isVisible())
+    {
+      // MDM - It happens that the frame is activated and deactivated before it's ever visible.  This causes problems.
+      // Only propogate the event is the frame is visible
+      previouslyActivated = true;
+      stage.activated(e);
+    }
   }
 
   public void deactivated(WindowEvent e)
   {
-    stage.deactivated(e);
+    if(previouslyActivated)
+    {
+      previouslyActivated = false;
+      stage.deactivated(e);
+    }
   }
 
   // Protected ////////////////////////////////////////////

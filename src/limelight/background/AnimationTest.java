@@ -61,8 +61,8 @@ public class AnimationTest extends TestCase
 
     Thread.sleep(25);
     animation.update();
-
-    assertEquals(3, animation.updates);
+    
+    assertEquals(true, animation.updates >= 3);
   }
 
   public void testMaximumMakeupPerformancesIs5() throws Exception

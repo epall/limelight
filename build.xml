@@ -16,6 +16,10 @@
         </fileset>
     </path>
 
+    <target name="init">
+        <mkdir dir="${classes}"/>
+    </target>
+
     <target name="build" depends="clean, compile" description="clean, then compile the source"/>
 
     <target name="testbuild" depends="clean, unit_test"
@@ -32,16 +36,16 @@
             </manifest>
         </jar>
     </target>
-    
-    <target name="compile" depends="init" description="compile the source (make)">
-        <javac srcdir="${src}" destdir="${classes}" classpathref="classpath" debug="true"/>
-    </target>
 
     <target name="clean" description="delete everything in the classes directory">
         <mkdir dir="${classes}"/>
         <delete includeemptydirs="true">
             <fileset dir="${classes}" includes="**/"/>
         </delete>
+    </target>
+    
+    <target name="compile" depends="init" description="compile the source (make)">
+        <javac srcdir="${src}" destdir="${classes}" classpathref="classpath" debug="off"/>
     </target>
 
     <target name="unit_test" depends="compile" description="run the unit tests">
@@ -57,8 +61,31 @@
         </junit>
     </target>
 
-    <target name="init">
-        <mkdir dir="${classes}"/>
+    <target name="compile.cont" depends="clean, init" description="compile the source (make)">
+        <javac srcdir="${src}" destdir="${classes}" classpathref="classpath" debug="off" nowarn="true">
+            <exclude name="**/darwin/**/*.java"/>
+        </javac>
+    </target>
+
+    <target name="unit_test.cont" depends="compile.cont" description="run the unit tests">
+        <junit fork="yes" printsummary="on" haltonfailure="yes" haltonerror="yes">
+            <classpath refid="classpath"/>
+            <!--<formatter type="xml" usefile="false" />-->
+            <formatter type="brief" usefile="false"/>
+            <batchtest fork="no" todir="etc/test_reports">
+                <fileset dir="${src}">
+                    <include name="**/*Test.java"/>
+                    <exclude name="**/darwin/**/*.*"/>
+                    <exclude name="**/KeyboardFocusManagerTest.java"/>
+                    <exclude name="**/StageFrameTest.java"/>
+                    <exclude name="**/FrameManagerTest.java"/>
+                    <exclude name="**/TextPanelTest.java"/>
+                    <exclude name="**/AlertFrameManagerTest.java"/>
+                    <exclude name="**/InputPanelTest.java"/>
+                    <exclude name="**/ScrollBarPanelTest.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
     </target>
 
 </project>
