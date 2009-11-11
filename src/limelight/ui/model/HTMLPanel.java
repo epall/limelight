@@ -15,7 +15,7 @@ public class HTMLPanel extends BasePanel {
 		panel.setEditable(false);
 		panel.setContentType("text/html");
 	}
-	
+
 	public void setHtml(String code){
 		panel.setText(code);
 	}
@@ -32,15 +32,32 @@ public class HTMLPanel extends BasePanel {
 
 	@Override
 	public Style getStyle() {
-	    return getParent().getStyle();
+		return getParent().getStyle();
 	}
 
 	@Override
 	public void paintOn(Graphics2D graphics) {
-		int width = Integer.valueOf(this.getStyle().getWidth());
-		int height = Integer.valueOf(this.getStyle().getHeight());
-		graphics.setClip(null);
 		panel.setSize(width, height);
+		panel.repaint();
 		panel.paint(graphics);
+	}
+
+	@Override
+	public Layout getDefaultLayout() {
+		return HTMLPanelLayout.instance;
+	}
+
+	public void compile() {
+		// figure out size
+		try {
+			width = Integer.valueOf(this.getStyle().getWidth());
+		} catch (Exception e){
+			width = Math.min(this.getParent().getWidth(), panel.getPreferredSize().width);
+		}
+		try {
+			height = Integer.valueOf(this.getStyle().getHeight());
+		} catch (Exception e){
+			height = panel.getPreferredSize().height;
+		}
 	}
 }
