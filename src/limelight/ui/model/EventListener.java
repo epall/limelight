@@ -100,6 +100,10 @@ public class EventListener implements MouseListener, MouseMotionListener, MouseW
         descendant.mouseExited(e);
         descendant = descendant.getParent();
       }
+      else
+      {
+    	  break;
+      }
     }
   }
 
